@@ -1,6 +1,7 @@
-const { response } = require('express');
 const express = require('express')
 const app = express();
+
+app.use(express.json())
 
 let data = [
   { 
@@ -24,6 +25,11 @@ let data = [
     "number": "39-23-6423122"
   }
 ]
+
+const generateId = () => {
+  const maxId = data.length > 0 ? Math.max(...data.map((person) => person.id)) : 0
+  return maxId + 1
+}
 
 app.get('/api/persons', (request, response) => {
   response.json(data)
@@ -54,6 +60,37 @@ app.delete('/api/persons/:id', (request, response) => {
   data = data.filter((person) => person.id !== id)
 
   response.status(204).end()
+})
+
+app.post('/api/persons', (request, response) => {
+
+  const body = request.body
+
+  // console.log(request)
+  const dupName = data.find((person) => person.name === body.name)
+  console.log(body)
+
+  if(!body.name || !body.number) {
+    return response.status(400).json({
+      error: 'content-missing'
+    })
+  } 
+
+  if(dupName) {
+    return response.status(400).json({
+      error: 'name must be unique'
+    })
+  }
+
+  const person = {
+    id: generateId(),
+    name: body.name,
+    number: body.number
+  }
+
+  data = data.concat(person)
+
+  response.json(person)
 })
 
 const PORT = 3001
