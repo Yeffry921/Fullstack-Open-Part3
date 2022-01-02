@@ -1,7 +1,15 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express();
 
 app.use(express.json())
+app.use(morgan(':method :data :status :res[content-length] - :response-time ms'))
+
+morgan.token('data', function(req, res) {
+  const { body } = req
+
+  return JSON.stringify(body)
+});
 
 let data = [
   { 
@@ -68,7 +76,6 @@ app.post('/api/persons', (request, response) => {
 
   // console.log(request)
   const dupName = data.find((person) => person.name === body.name)
-  console.log(body)
 
   if(!body.name || !body.number) {
     return response.status(400).json({
