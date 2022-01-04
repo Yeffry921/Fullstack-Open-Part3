@@ -3,7 +3,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 const app = express();
 
-app.use(cors)
+app.use(cors())
 app.use(express.json())
 app.use(morgan(':method :data :status :res[content-length] - :response-time ms'))
 
