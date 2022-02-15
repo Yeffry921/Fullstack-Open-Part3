@@ -17,13 +17,6 @@ morgan.token('data', function(req, res) {
   return JSON.stringify(body)
 });
 
-app.get('/api/persons', (request, response) => {
-  // response.json(data)
-  Person.find({}).then((result) => {
-    response.json(result)
-  })
-})
-
 app.get('/info', (request, response) => {
   response.send(
     `
@@ -33,20 +26,33 @@ app.get('/info', (request, response) => {
   )
 })
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = data.find((person) => person.id === id)
+// GET all phonebooks
 
-  if(person) {
-    response.json(person)
-  } else  {
-    response.status(404).end()
-  }
+app.get('/api/persons', (request, response) => {
+  // response.json(data)
+  Person.find({}).then((result) => {
+    response.json(result)
+  })
+})
+
+
+
+app.get('/api/persons/:id', (request, response) => {
+  Person.findById(request.params.id).then((result) => {
+    if(result) {
+      response.json(result)
+    } else  {
+      response.status(404).end()
+    }
+  })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = Number(request.params.id);
-  data = data.filter((person) => person.id !== id)
+  Person.findByIdAndDelete(request.params.id)
+    .then((result) => {
+      response.status(204).end()
+    })
+    .catch((error) => next(error))
 
   response.status(204).end()
 })
