@@ -35,8 +35,6 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-
-
 app.get('/api/persons/:id', (request, response) => {
   Person.findById(request.params.id).then((result) => {
     if(result) {
@@ -53,27 +51,17 @@ app.delete('/api/persons/:id', (request, response) => {
       response.status(204).end()
     })
     .catch((error) => next(error))
-
-  response.status(204).end()
 })
 
 app.post('/api/persons', (request, response) => {
 
   const body = request.body
 
-  // const dupName = data.find((person) => person.name === body.name)
-
   if(!body.name || !body.number) {
     return response.status(400).json({
       error: 'content-missing'
     })
   } 
-
-  // if(dupName) {
-  //   return response.status(400).json({
-  //     error: 'name must be unique'
-  //   })
-  // }
 
   const person = new Person({
     name: body.name,
@@ -84,6 +72,39 @@ app.post('/api/persons', (request, response) => {
     response.json(result)
   })
 })
+
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body
+
+  const person = {
+    body: body.name,
+    number: body.number
+  }
+
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((result) => {
+      res.json(result)
+    })
+    .catch((error) => next(error))
+})
+
+const unknownEndpoint = (req, res) => {
+  res.status(404).send({ message: "unknown endpoint" })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (error, req, res, next) => {
+  console.log(error)
+
+  if(error === "CastError") {
+    return res.status(400).send({ message: "malformatted id" })
+  }
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 
