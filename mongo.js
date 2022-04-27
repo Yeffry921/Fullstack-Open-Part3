@@ -5,7 +5,10 @@ const url = process.env.MONGO_URI
 mongoose.connect(url)
 
 const personSchema = new mongoose.Schema({
-  name: String,
+  name: {
+    type: String,
+    minlength: 3,
+  },
   number: Number,
 })
 
