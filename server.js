@@ -1,14 +1,15 @@
 require('dotenv').config()
 const express = require('express')
+const app = express();
 const morgan = require('morgan')
 const cors = require('cors')
-const app = express();
+
 
 const Person = require('./mongo')
 
 app.use(cors())
-app.use(express.static('build'))
 app.use(express.json())
+app.use(express.static('build'))
 app.use(morgan(':method :data :status :res[content-length] - :response-time ms'))
 
 morgan.token('data', function(req, res) {
@@ -53,24 +54,20 @@ app.delete('/api/persons/:id', (request, response) => {
     .catch((error) => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
 
   const body = request.body
-
-  if(!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'content-missing'
-    })
-  } 
 
   const person = new Person({
     name: body.name,
     number: body.number
   })
 
-  person.save().then((result) => {
-    response.json(result)
-  })
+  person.save()
+    .then((result) => {
+      response.json(result)
+    })
+    .catch((error) => next(error))
 })
 
 
@@ -96,10 +93,12 @@ const unknownEndpoint = (req, res) => {
 app.use(unknownEndpoint)
 
 const errorHandler = (error, req, res, next) => {
-  console.log(error)
+  console.error(error)
 
-  if(error === "CastError") {
-    return res.status(400).send({ message: "malformatted id" })
+  if(error.name === "CastError") {
+    return res.status(400).send({ error: "malformatted id" })
+  } else if (error.name === "ValidationError") {
+    return res.status(400).json({ error: error.message })
   }
   next(error)
 }
